@@ -320,16 +320,16 @@ if [ "$COMPILE_WITH_CLANG" == "ON" ]; then
 fi
 
 # Strong optimization.
-export CXXFLAGS="${CXXFLAGS} -O3"
+export CXXFLAGS="${CXXFLAGS} -O0"
 # Toggle unity compilation.
-CMAKE_FLAGS+="-DCMAKE_UNITY_BUILD=${CMAKE_UNITY_BUILD} "
+CMAKE_FLAGS+="-DCMAKE_UNITY_BUILD=OFF "
 # Toggle static builds.
 CMAKE_FLAGS+="-DSTATIC_BUILD_WITH_DYNAMIC_GLIBC=${STATIC_BUILD_WITH_DYNAMIC_GLIBC} "
 CMAKE_FLAGS+="-DSTATIC_BUILD_WITH_DYNAMIC_STDLIB=${STATIC_BUILD_WITH_DYNAMIC_STDLIB} "
 # Enable GTest.
 CMAKE_FLAGS+="-DENABLE_GTESTS=${ENABLE_GTESTS} "
 # Release should be default, but we want to make sure.
-CMAKE_FLAGS+="-DCMAKE_BUILD_TYPE=Release "
+CMAKE_FLAGS+="-DCMAKE_BUILD_TYPE=Debug "
 # Treat warnings as errors.
 CMAKE_FLAGS+="-DENABLE_WERROR=${ENABLE_WERROR} "
 # Enable sanitizers.
@@ -339,6 +339,7 @@ CMAKE_FLAGS+="-DBUILD_AUTO_VAR_INIT_PATTERN=${BUILD_AUTO_VAR_INIT_PATTERN} "
 # Assemble the enabled back ends as a single CMake variable.
 build_cmake_enabled_backend_string
 CMAKE_FLAGS+="${CMAKE_ENABLE_BACKENDS} "
+CMAKE_FLAGS+="-DCMAKE_EXPORT_COMPILE_COMMANDS=ON "
 
 if [ "$ENABLE_SANITIZERS" == "ON" ]; then
   CMAKE_FLAGS+="-DENABLE_GC=OFF"
@@ -349,11 +350,13 @@ fi
 if [ -e build ]; then /bin/rm -rf build; fi
 mkdir -p ${P4C_DIR}/build
 cd ${P4C_DIR}/build
-cmake ${CMAKE_FLAGS} -G "${BUILD_GENERATOR}" ..
+cmake ${CMAKE_FLAGS} -G "${BUILD_GENERATOR}" .. \
+  -DCMAKE_CXX_FLAGS="--coverage -O0" \
+  -DCMAKE_C_FLAGS="--coverage -O0"
 
 # If CMAKE_ONLY is active, only run CMake. Do not build.
 if [ "$CMAKE_ONLY" == "OFF" ]; then
-  cmake --build . -- -j $(nproc)
+  cmake --build . -- -j $(nproc) VERBOSE=1
   sudo cmake --install .
   # Print ccache statistics after building
   ccache -p -s
