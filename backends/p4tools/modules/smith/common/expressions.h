@@ -69,7 +69,7 @@ class ExpressionGenerator : public Generator {
     static IR::Constant *genBitLiteral(const IR::Type *tb);
 
     [[nodiscard]] virtual std::vector<int> availableBitWidths() const {
-        return {4, 8, 16, 32, 64, 128};
+        return {4, 8, 16};
     }
 
  private:

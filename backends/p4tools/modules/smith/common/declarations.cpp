@@ -344,9 +344,9 @@ IR::Function *DeclarationGenerator::genFunctionDeclaration() {
 
 IR::Type_Header *DeclarationGenerator::genEthernetHeaderType() {
     IR::IndexedVector<IR::StructField> fields;
-    auto *ethDst = new IR::StructField("dst_addr", IR::Type_Bits::get(48, false));
-    auto *ethSrc = new IR::StructField("src_addr", IR::Type_Bits::get(48, false));
-    auto *ethType = new IR::StructField("eth_type", IR::Type_Bits::get(16, false));
+    auto *ethDst = new IR::StructField("dst_addr", IR::Type_Bits::get(16, false));
+    auto *ethSrc = new IR::StructField("src_addr", IR::Type_Bits::get(16, false));
+    auto *ethType = new IR::StructField("eth_type", IR::Type_Bits::get(8, false));
 
     fields.push_back(ethDst);
     fields.push_back(ethSrc);

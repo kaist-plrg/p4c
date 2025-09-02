@@ -412,7 +412,7 @@ IR::ReturnStatement *StatementGenerator::genReturnStatement(const IR::Type *tp) 
 /// Generate a for-loop statement.
 IR::ForStatement *StatementGenerator::genForLoopStatement(bool is_in_func) {
     std::string loopVar = P4Tools::P4Smith::getRandomString(1);
-    int bitFieldWidth = Utils::getRandInt(1, 64);
+    int bitFieldWidth = Utils::getRandInt(1, 16);
     big_int upperBound = IR::getMaxBvVal(bitFieldWidth);
     const IR::Type *varType = IR::Type_Bits::get(bitFieldWidth);
 
@@ -438,7 +438,7 @@ IR::ForStatement *StatementGenerator::genForLoopStatement(bool is_in_func) {
 /// Generate a for-in-loop statement.
 IR::ForInStatement *StatementGenerator::genForInLoopStatement(bool is_in_func) {
     std::string loopVar = P4Tools::P4Smith::getRandomString(1);
-    int bitFieldWidth = Utils::getRandInt(1, 64);
+    int bitFieldWidth = Utils::getRandInt(1, 16);
     const IR::Type *varType = IR::Type_Bits::get(bitFieldWidth);
     big_int lowerBound = IR::getMinBvVal(varType);
     big_int upperBound = IR::getMaxBvVal(bitFieldWidth);
