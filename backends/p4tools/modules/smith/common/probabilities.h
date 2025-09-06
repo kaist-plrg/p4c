@@ -45,7 +45,7 @@ struct Probabilities {
     uint16_t EXPRESSION_BIT_UNARY_CAST = 10;
     uint16_t EXPRESSION_BIT_UNARY_FUNCTION = 50;
     // probabilities for binary bit expressions
-    uint16_t EXPRESSION_BIT_BINARY_MUL = 10;
+    uint16_t EXPRESSION_BIT_BINARY_MUL = 5;
     uint16_t EXPRESSION_BIT_BINARY_DIV = 0;
     uint16_t EXPRESSION_BIT_BINARY_MOD = 0;
     uint16_t EXPRESSION_BIT_BINARY_ADD = 10;
@@ -57,7 +57,7 @@ struct Probabilities {
     uint16_t EXPRESSION_BIT_BINARY_BAND = 10;
     uint16_t EXPRESSION_BIT_BINARY_BOR = 10;
     uint16_t EXPRESSION_BIT_BINARY_BXOR = 10;
-    uint16_t EXPRESSION_BIT_BINARY_CONCAT = 10;
+    uint16_t EXPRESSION_BIT_BINARY_CONCAT = 5;
     // probabilities for ternary bit expressions
     uint16_t EXPRESSION_BIT_BINARY_SLICE = 50;
     uint16_t EXPRESSION_BIT_BINARY_MUX = 50;
@@ -81,9 +81,9 @@ struct Probabilities {
     uint16_t EXPRESSION_INT_BINARY_SUB = 10;
     uint16_t EXPRESSION_INT_BINARY_LSHIFT = 0;
     uint16_t EXPRESSION_INT_BINARY_RSHIFT = 0;
-    uint16_t EXPRESSION_INT_BINARY_BAND = 10;
-    uint16_t EXPRESSION_INT_BINARY_BOR = 10;
-    uint16_t EXPRESSION_INT_BINARY_BXOR = 10;
+    uint16_t EXPRESSION_INT_BINARY_BAND = 0;
+    uint16_t EXPRESSION_INT_BINARY_BOR = 0;
+    uint16_t EXPRESSION_INT_BINARY_BXOR = 0;
     // probabilities for ternary int expressions
     uint16_t EXPRESSION_INT_BINARY_MUX = 50;
     // probabilities for int expressions

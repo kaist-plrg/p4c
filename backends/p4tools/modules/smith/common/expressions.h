@@ -73,18 +73,18 @@ class ExpressionGenerator : public Generator {
     }
 
  private:
-    IR::Expression *constructUnaryExpr(const IR::Type_Bits *tb);
+    IR::Expression *constructUnaryExpr(const IR::Type_Bits *tb, const bool allow_int);
 
     IR::Expression *createSaturationOperand(const IR::Type_Bits *tb);
 
-    IR::Expression *constructBinaryBitExpr(const IR::Type_Bits *tb);
+    IR::Expression *constructBinaryBitExpr(const IR::Type_Bits *tb, const bool allow_int);
 
-    IR::Expression *constructTernaryBitExpr(const IR::Type_Bits *tb);
+    IR::Expression *constructTernaryBitExpr(const IR::Type_Bits *tb, const bool allow_int);
 
  public:
     virtual IR::Expression *pickBitVar(const IR::Type_Bits *tb);
 
-    virtual IR::Expression *constructBitExpr(const IR::Type_Bits *tb);
+    virtual IR::Expression *constructBitExpr(const IR::Type_Bits *tb, const bool allow_int);
 
  private:
     IR::Expression *constructCmpExpr();

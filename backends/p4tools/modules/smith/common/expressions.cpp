@@ -231,7 +231,7 @@ IR::Expression *ExpressionGenerator::genExpression(const IR::Type *tp) {
     P4Scope::prop.depth = 0;
 
     if (const auto *tb = tp->to<IR::Type_Bits>()) {
-        expr = constructBitExpr(tb);
+        expr = constructBitExpr(tb, true);
     } else if (tp->is<IR::Type_InfInt>()) {
         expr = constructIntExpr();
     } else if (tp->is<IR::Type_Boolean>()) {
@@ -329,7 +329,7 @@ IR::ListExpression *ExpressionGenerator::genExpressionList(IR::Vector<IR::Type> 
     return new IR::ListExpression(components);
 }
 
-IR::Expression *ExpressionGenerator::constructUnaryExpr(const IR::Type_Bits *tb) {
+IR::Expression *ExpressionGenerator::constructUnaryExpr(const IR::Type_Bits *tb, const bool allow_int) {
     IR::Expression *expr = nullptr;
 
     if (P4Scope::prop.depth > MAX_DEPTH) {
@@ -350,12 +350,12 @@ IR::Expression *ExpressionGenerator::constructUnaryExpr(const IR::Type_Bits *tb)
     switch (Utils::getRandInt(percent)) {
         case 0: {
             // pick a negation that matches the type
-            expr = new IR::Neg(tb, constructBitExpr(tb));
+            expr = new IR::Neg(tb, constructBitExpr(tb, allow_int));
         } break;
         case 1: {
             // pick a complement that matches the type
             // width must be known so we cast
-            expr = constructBitExpr(tb);
+            expr = constructBitExpr(tb, allow_int);
             if (P4Scope::prop.width_unknown) {
                 expr = new IR::Cast(tb, expr);
                 P4Scope::prop.width_unknown = false;
@@ -365,7 +365,7 @@ IR::Expression *ExpressionGenerator::constructUnaryExpr(const IR::Type_Bits *tb)
         case 2: {
             // pick a cast to the type that matches the type
             // new bit type can be random here
-            expr = new IR::Cast(tb, constructBitExpr(tb));
+            expr = new IR::Cast(tb, constructBitExpr(tb, allow_int));
         } break;
         case 3: {
             auto p4Functions = P4Scope::getDecls<IR::Function>();
@@ -399,7 +399,7 @@ IR::Expression *ExpressionGenerator::constructUnaryExpr(const IR::Type_Bits *tb)
 }
 
 IR::Expression *ExpressionGenerator::createSaturationOperand(const IR::Type_Bits *tb) {
-    IR::Expression *expr = constructBitExpr(tb);
+    IR::Expression *expr = constructBitExpr(tb, true);
 
     int width = P4Scope::constraints.max_phv_container_width;
     if (width != 0) {
@@ -422,7 +422,7 @@ IR::Expression *ExpressionGenerator::createSaturationOperand(const IR::Type_Bits
     return expr;
 }
 
-IR::Expression *ExpressionGenerator::constructBinaryBitExpr(const IR::Type_Bits *tb) {
+IR::Expression *ExpressionGenerator::constructBinaryBitExpr(const IR::Type_Bits *tb, const bool allow_int) {
     IR::Expression *expr = nullptr;
 
     if (P4Scope::prop.depth > MAX_DEPTH) {
@@ -454,8 +454,8 @@ IR::Expression *ExpressionGenerator::constructBinaryBitExpr(const IR::Type_Bits 
 
     switch (Utils::getRandInt(percent)) {
         case 0: {
-            IR::Expression *left = constructBitExpr(tb);
-            IR::Expression *right = constructBitExpr(tb);
+            IR::Expression *left = constructBitExpr(tb, allow_int);
+            IR::Expression *right = constructBitExpr(tb, allow_int);
             // pick a multiplication that matches the type
             expr = new IR::Mul(tb, left, right);
         } break;
@@ -480,14 +480,14 @@ IR::Expression *ExpressionGenerator::constructBinaryBitExpr(const IR::Type_Bits 
             expr = new IR::Mod(tb, left, right);
         } break;
         case 3: {
-            IR::Expression *left = constructBitExpr(tb);
-            IR::Expression *right = constructBitExpr(tb);
+            IR::Expression *left = constructBitExpr(tb, allow_int);
+            IR::Expression *right = constructBitExpr(tb, allow_int);
             // pick an addition that matches the type
             expr = new IR::Add(tb, left, right);
         } break;
         case 4: {
-            IR::Expression *left = constructBitExpr(tb);
-            IR::Expression *right = constructBitExpr(tb);
+            IR::Expression *left = constructBitExpr(tb, allow_int);
+            IR::Expression *right = constructBitExpr(tb, allow_int);
             // pick a subtraction that matches the type
             expr = new IR::Sub(tb, left, right);
         } break;
@@ -521,14 +521,14 @@ IR::Expression *ExpressionGenerator::constructBinaryBitExpr(const IR::Type_Bits 
         } break;
         case 7: {
             // width must be known so we cast
-            IR::Expression *left = constructBitExpr(tb);
+            IR::Expression *left = constructBitExpr(tb, allow_int);
             if (P4Scope::prop.width_unknown) {
                 left = new IR::Cast(tb, left);
                 P4Scope::prop.width_unknown = false;
             }
             // TODO(fruffy): Make this more sophisticated,
             P4Scope::req.not_negative = true;
-            IR::Expression *right = constructBitExpr(tb);
+            IR::Expression *right = constructBitExpr(tb, true);
             P4Scope::req.not_negative = false;
             // TODO(fruffy): Make this more sophisticated
             // shifts are limited to 8 bits
@@ -542,7 +542,7 @@ IR::Expression *ExpressionGenerator::constructBinaryBitExpr(const IR::Type_Bits 
         } break;
         case 8: {
             // width must be known so we cast
-            IR::Expression *left = constructBitExpr(tb);
+            IR::Expression *left = constructBitExpr(tb, allow_int);
             if (P4Scope::prop.width_unknown) {
                 left = new IR::Cast(tb, left);
                 P4Scope::prop.width_unknown = false;
@@ -550,7 +550,7 @@ IR::Expression *ExpressionGenerator::constructBinaryBitExpr(const IR::Type_Bits 
 
             // TODO(fruffy): Make this more sophisticated,
             P4Scope::req.not_negative = true;
-            IR::Expression *right = constructBitExpr(tb);
+            IR::Expression *right = constructBitExpr(tb, allow_int);
             P4Scope::req.not_negative = false;
             // shifts are limited to 8 bits
             right = new IR::Cast(IR::Type_Bits::get(8, false), right);
@@ -558,20 +558,23 @@ IR::Expression *ExpressionGenerator::constructBinaryBitExpr(const IR::Type_Bits 
             expr = new IR::Shr(tb, left, right);
         } break;
         case 9: {
-            IR::Expression *left = constructBitExpr(tb);
-            IR::Expression *right = constructBitExpr(tb);
+            IR::Expression *left = constructBitExpr(tb, false);
+            // if left is arbitrary width, disallow ints on right
+            IR::Expression *right = constructBitExpr(tb, !P4Scope::prop.width_unknown);
             // pick an binary And that matches the type
             expr = new IR::BAnd(tb, left, right);
         } break;
         case 10: {
-            IR::Expression *left = constructBitExpr(tb);
-            IR::Expression *right = constructBitExpr(tb);
+            IR::Expression *left = constructBitExpr(tb, false);
+            // if left is arbitrary width, disallow ints on right
+            IR::Expression *right = constructBitExpr(tb, !P4Scope::prop.width_unknown);
             // pick a binary Or and that matches the type
             expr = new IR::BOr(tb, left, right);
         } break;
         case 11: {
-            IR::Expression *left = constructBitExpr(tb);
-            IR::Expression *right = constructBitExpr(tb);
+            IR::Expression *left = constructBitExpr(tb, false);
+            // if left is arbitrary width, disallow ints on right
+            IR::Expression *right = constructBitExpr(tb, !P4Scope::prop.width_unknown);
             // pick an binary Xor that matches the type
             expr = new IR::BXor(tb, left, right);
         } break;
@@ -586,12 +589,12 @@ IR::Expression *ExpressionGenerator::constructBinaryBitExpr(const IR::Type_Bits 
             const auto *tl = IR::Type_Bits::get(typeWidth - split, false);
             const auto *tr = IR::Type_Bits::get(split, false);
             // width must be known so we cast
-            IR::Expression *left = constructBitExpr(tl);
+            IR::Expression *left = constructBitExpr(tl, allow_int);
             if (P4Scope::prop.width_unknown) {
                 left = new IR::Cast(tl, left);
                 P4Scope::prop.width_unknown = false;
             }
-            IR::Expression *right = constructBitExpr(tr);
+            IR::Expression *right = constructBitExpr(tr, allow_int);
             if (P4Scope::prop.width_unknown) {
                 right = new IR::Cast(tr, right);
                 P4Scope::prop.width_unknown = false;
@@ -602,7 +605,7 @@ IR::Expression *ExpressionGenerator::constructBinaryBitExpr(const IR::Type_Bits 
     return expr;
 }
 
-IR::Expression *ExpressionGenerator::constructTernaryBitExpr(const IR::Type_Bits *tb) {
+IR::Expression *ExpressionGenerator::constructTernaryBitExpr(const IR::Type_Bits *tb, const bool allow_int) {
     IR::Expression *expr = nullptr;
 
     if (P4Scope::prop.depth > MAX_DEPTH) {
@@ -621,7 +624,7 @@ IR::Expression *ExpressionGenerator::constructTernaryBitExpr(const IR::Type_Bits
             // TODO(fruffy): this is some arbitrary value...
             auto newTypeSize = Utils::getRandInt(typeWidth, P4Scope::constraints.max_bitwidth);
             const auto *sliceType = IR::Type_Bits::get(newTypeSize, false);
-            auto *sliceExpr = constructBitExpr(sliceType);
+            auto *sliceExpr = constructBitExpr(sliceType, allow_int);
             if (P4Scope::prop.width_unknown) {
                 sliceExpr = new IR::Cast(sliceType, sliceExpr);
                 P4Scope::prop.width_unknown = false;
@@ -635,12 +638,12 @@ IR::Expression *ExpressionGenerator::constructTernaryBitExpr(const IR::Type_Bits
         case 1: {
             // pick a mux that matches the type
             IR::Expression *cond = constructBooleanExpr();
-            IR::Expression *left = constructBitExpr(tb);
+            IR::Expression *left = constructBitExpr(tb, allow_int);
             if (P4Scope::prop.width_unknown) {
                 left = new IR::Cast(tb, left);
                 P4Scope::prop.width_unknown = false;
             }
-            IR::Expression *right = constructBitExpr(tb);
+            IR::Expression *right = constructBitExpr(tb, allow_int);
             if (P4Scope::prop.width_unknown) {
                 right = new IR::Cast(tb, right);
                 P4Scope::prop.width_unknown = false;
@@ -669,7 +672,7 @@ IR::Expression *ExpressionGenerator::pickBitVar(const IR::Type_Bits *tb) {
     return genBitLiteral(tb);
 }
 
-IR::Expression *ExpressionGenerator::constructBitExpr(const IR::Type_Bits *tb) {
+IR::Expression *ExpressionGenerator::constructBitExpr(const IR::Type_Bits *tb, const bool allow_int) {
     IR::Expression *expr = nullptr;
 
     std::vector<int64_t> percent = {Probabilities::get().EXPRESSION_BIT_VAR,
@@ -692,7 +695,7 @@ IR::Expression *ExpressionGenerator::constructBitExpr(const IR::Type_Bits *tb) {
         } break;
         case 1: {
             // pick an int literal, if allowed
-            if (P4Scope::req.require_scalar) {
+            if (P4Scope::req.require_scalar || !allow_int) {
                 expr = genBitLiteral(tb);
             } else {
                 expr = constructIntExpr();
@@ -705,15 +708,15 @@ IR::Expression *ExpressionGenerator::constructBitExpr(const IR::Type_Bits *tb) {
         } break;
         case 3: {
             // pick a unary expression that matches the type
-            expr = constructUnaryExpr(tb);
+            expr = constructUnaryExpr(tb, allow_int);
         } break;
         case 4: {
             // pick a binary expression that matches the type
-            expr = constructBinaryBitExpr(tb);
+            expr = constructBinaryBitExpr(tb, allow_int);
         } break;
         case 5: {
             // pick a ternary expression that matches the type
-            expr = constructTernaryBitExpr(tb);
+            expr = constructTernaryBitExpr(tb, allow_int);
         } break;
     }
     return expr;
@@ -726,8 +729,8 @@ IR::Expression *ExpressionGenerator::constructCmpExpr() {
     // For now it is just bits.
     auto newTypeSize = Utils::getRandInt(1, P4Scope::constraints.max_bitwidth);
     const auto *newType = IR::Type_Bits::get(newTypeSize, false);
-    IR::Expression *left = constructBitExpr(newType);
-    IR::Expression *right = constructBitExpr(newType);
+    IR::Expression *left = constructBitExpr(newType, true);
+    IR::Expression *right = constructBitExpr(newType, true);
 
     std::vector<int64_t> percent = {Probabilities::get().EXPRESSION_BOOLEAN_CMP_EQU,
                                     Probabilities::get().EXPRESSION_BOOLEAN_CMP_NEQ};
