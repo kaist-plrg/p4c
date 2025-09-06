@@ -34,7 +34,7 @@ struct Constraints {
     int max_phv_container_width{0};
     // This is the maximum bitwidth that
     // can be specified for different targets.
-    int max_bitwidth{16};
+    int max_bitwidth{8};
     Constraints()
 
         = default;

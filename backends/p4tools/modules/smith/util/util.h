@@ -7,7 +7,7 @@
 
 namespace P4::P4Tools::P4Smith {
 
-static constexpr int INTEGER_WIDTH(16);
+static constexpr int INTEGER_WIDTH(8);
 
 /// These are hardcoded initialization names.
 static const cstring SYS_HDR_NAME("Headers");
